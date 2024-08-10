@@ -24,12 +24,10 @@ SELECT
         END AS price,
     COALESCE(sales, median_sales_cte.median_sales) AS sales,
 	COALESCE(rating, '0') AS rating,
-	repeat_purchase
-	
+	repeat_purchase	
 FROM
     public.pet_supplies,
-    median_sales_cte
-	
+    median_sales_cte	
 WHERE
 	repeat_purchase IS NOT NULL;
 
