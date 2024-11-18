@@ -59,7 +59,7 @@ FROM    spotify.data_cleaned
 ORDER BY track_name)
 SELECT  artists, COUNT(*) as n_popularsongs
 FROM    distinct_track
-WHERE   tier IN ("High","Viral")
+WHERE   tier IN ("High")
 GROUP BY artists
 ORDER BY n_popularsongs desc
 LIMIT 25;
