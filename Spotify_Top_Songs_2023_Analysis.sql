@@ -1,8 +1,8 @@
 SELECT * 
-FROM  spotify.spotify_data;
+FROM  spotify.data;
 
 SELECT popularity,track_id,track_name,track_genre,album_name,artists,duration_ms,explicit,danceability,energy,key,loudness,mode,speechiness,acousticness,instrumentalness,liveness,valence,tempo,time_signature
-FROM spotify.spotify_data;
+FROM spotify.data;
 
 SELECT  COUNT(*) - COUNT(popularity) popularity,
         COUNT(*) - COUNT(track_id) track_id,
@@ -24,11 +24,11 @@ SELECT  COUNT(*) - COUNT(popularity) popularity,
         COUNT(*) - COUNT(valence) valence,
         COUNT(*) - COUNT(tempo) tempo,
         COUNT(*) - COUNT(time_signature) time_signature
-FROM spotify.spotify_data;
+FROM spotify.data;
 
 
 DROP TABLE IF EXISTS spotify.data_nonulls;
-CREATE TABLE spotify.data_nonulls AS
+CREATE TABLE spotify.data_cleaned AS
 (SELECT popularity,
 CASE  WHEN popularity >= 75 THEN "High"
                 WHEN popularity >= 50 THEN "Medium-high"
@@ -36,7 +36,7 @@ CASE  WHEN popularity >= 75 THEN "High"
                 ELSE "Low"
           END AS tier,
 track_name,track_genre,album_name,artists,duration_ms,explicit,danceability,energy,key,loudness,mode,speechiness,acousticness,instrumentalness,liveness,valence,tempo,time_signature
-FROM spotify.spotify_data
+FROM spotify.data
 WHERE track_name IS NOT NULL AND
       album_name IS NOT NULL AND 
       artists IS NOT NULL
@@ -44,31 +44,28 @@ ORDER BY popularity desc
 );
 
 SELECT * 
-FROM spotify.data_nonulls;
-
-SELECT COUNT(track_id), COUNT(track_name)
-FROM spotify.data_nonulls;
+FROM spotify.data_cleaned;
 
 
-SELECT DISTINCT track_genre,avg(popularity) as avg_popularity
-FROM  spotify.data
+SELECT DISTINCT track_genre,ROUND(AVG(popularity),2) as avg_popularity
+FROM  spotify.data_cleaned
 GROUP BY track_genre
 ORDER BY avg_popularity desc
 LIMIT 25;
 
-WITH  distinct_track as (
-SELECT DISTINCT track_name, artists,tier
-FROM  spotify.data
+WITH    distinct_track as (
+SELECT  DISTINCT track_name, artists,tier
+FROM    spotify.data_cleaned
 ORDER BY track_name)
-select artists, COUNT(*) as n_popularsongs
-FROM  distinct_track
-WHERE tier IN ("High","Viral")
+SELECT  artists, COUNT(*) as n_popularsongs
+FROM    distinct_track
+WHERE   tier IN ("High","Viral")
 GROUP BY artists
 ORDER BY n_popularsongs desc
 LIMIT 25;
 
 SELECT  track_genre, tier, COUNT(*) as count
-FROM    spotify.data
+FROM    spotify.data_cleaned
 WHERE   tier IN ("High","Viral")
 GROUP BY track_genre,tier
 ORDER BY tier desc,count desc,track_genre
@@ -83,8 +80,9 @@ SELECT  ROUND(AVG(duration_ms),2) duration_ms,
         ROUND(AVG(liveness),2) liveness,
         ROUND(AVG(valence),2) valence,
         ROUND(AVG(tempo),2) tempo
-FROM spotify.data;
+FROM spotify.data_cleaned;
 
+        
 SELECT  tier,
         ROUND(AVG(duration_ms),2) duration_ms,
         ROUND(AVG(danceability),2) danceability,
@@ -95,5 +93,7 @@ SELECT  tier,
         ROUND(AVG(liveness),2) liveness,
         ROUND(AVG(valence),2) valence,
         ROUND(AVG(tempo),2) tempo
-FROM spotify.data
+FROM spotify.data_cleaned
 GROUP BY tier;
+
+
