@@ -53,6 +53,19 @@ GROUP BY track_genre
 ORDER BY avg_popularity desc
 LIMIT 25;
 
+SELECT  track_genre, tier, COUNT(*) as count
+FROM    spotify.data_cleaned
+WHERE   tier IN ("High")
+GROUP BY track_genre,tier
+ORDER BY tier desc,count desc,track_genre
+;
+
+SELECT DISTINCT artists,ROUND(AVG(popularity),2) as avg_popularity
+FROM  spotify.data_cleaned
+GROUP BY artists
+ORDER BY avg_popularity desc
+LIMIT 25;
+
 WITH    distinct_track as (
 SELECT  DISTINCT track_name, artists,tier
 FROM    spotify.data_cleaned
@@ -64,38 +77,17 @@ GROUP BY artists
 ORDER BY n_popularsongs desc
 LIMIT 25;
 
-SELECT  track_genre, tier, COUNT(*) as count
-FROM    spotify.data_cleaned
-WHERE   tier IN ("High","Viral")
-GROUP BY track_genre,tier
-ORDER BY tier desc,count desc,track_genre
-;
-
-SELECT  ROUND(AVG(duration_ms),2) duration_ms,
-        ROUND(AVG(danceability),2) danceability,
-        ROUND(AVG(energy),2) energy,
-        ROUND(AVG(speechiness),2) speechiness,
-        ROUND(AVG(acousticness),2) acousticness,
-        ROUND(AVG(instrumentalness),2) instrumentalness,
-        ROUND(AVG(liveness),2) liveness,
-        ROUND(AVG(valence),2) valence,
-        ROUND(AVG(tempo),2) tempo
+SELECT 
+  ROUND(CORR(duration_ms, popularity),2) as duration_corr,
+  ROUND(CORR(danceability, popularity),2) as danceability_corr,
+  ROUND(CORR(energy, popularity),2) as energy_corr, 
+  ROUND(CORR(speechiness, popularity),2) as speechiness_corr, 
+  ROUND(CORR(acousticness, popularity),2) as acousticness_corr,
+  ROUND(CORR(instrumentalness, popularity),2) as instrumentalness_corr,
+  ROUND(CORR(liveness, popularity),2) as liveness_corr,
+  ROUND(CORR(valence, popularity),2) as valence_corr,
+  ROUND(CORR(tempo, popularity),2) as tempo_corr 
 FROM spotify.data_cleaned;
-
-# seeing if there's correlation between various aspects of a song and their popularity
-SELECT  tier,
-        ROUND(AVG(duration_ms),2) duration_ms,
-        ROUND(AVG(danceability),2) danceability,
-        ROUND(AVG(energy),2) energy,
-        ROUND(AVG(speechiness),2) speechiness,
-        ROUND(AVG(acousticness),2) acousticness,
-        ROUND(AVG(instrumentalness),2) instrumentalness,
-        ROUND(AVG(liveness),2) liveness,
-        ROUND(AVG(valence),2) valence,
-        ROUND(AVG(tempo),2) tempo
-FROM spotify.data_cleaned
-GROUP BY tier;
-#from the results, it seems like as songs become more popular, they tend to have more danceability and less acousticness and instrumentallness, while other factors doesn't show a specific trend. a scatterplot to further visualize this analysis would be beneficial
 
 
 SELECT 
@@ -104,15 +96,8 @@ SELECT
         ELSE 'Long' 
   END as duration_category, 
   AVG(popularity) as avg_popularity 
-FROM spotify.data 
-GROUP BY duration_category;
-
-
-SELECT        
-        explicit, 
-        AVG(popularity) as avg_popularity 
 FROM spotify.data_cleaned 
-GROUP BY explicit;
+GROUP BY duration_category;
 
 
 SELECT 
@@ -125,3 +110,4 @@ GROUP BY
     track_genre, explicit
 ORDER BY 
     avg_popularity DESC;
+
