@@ -82,7 +82,7 @@ SELECT  ROUND(AVG(duration_ms),2) duration_ms,
         ROUND(AVG(tempo),2) tempo
 FROM spotify.data_cleaned;
 
-        
+# seeing if there's correlation between various aspects of a song and their popularity
 SELECT  tier,
         ROUND(AVG(duration_ms),2) duration_ms,
         ROUND(AVG(danceability),2) danceability,
@@ -95,5 +95,33 @@ SELECT  tier,
         ROUND(AVG(tempo),2) tempo
 FROM spotify.data_cleaned
 GROUP BY tier;
+#from the results, it seems like as songs become more popular, they tend to have more danceability and less acousticness and instrumentallness, while other factors doesn't show a specific trend. a scatterplot to further visualize this analysis would be beneficial
 
 
+SELECT 
+  CASE  WHEN duration_ms < 180000 THEN 'Short' 
+        WHEN duration_ms BETWEEN 180000 AND 300000 THEN 'Medium' 
+        ELSE 'Long' 
+  END as duration_category, 
+  AVG(popularity) as avg_popularity 
+FROM spotify.data 
+GROUP BY duration_category;
+
+
+SELECT        
+        explicit, 
+        AVG(popularity) as avg_popularity 
+FROM spotify.data_cleaned 
+GROUP BY explicit;
+
+
+SELECT 
+    track_genre, 
+    explicit, 
+    ROUND(AVG(popularity), 2) AS avg_popularity
+FROM 
+    spotify.data_cleaned
+GROUP BY 
+    track_genre, explicit
+ORDER BY 
+    avg_popularity DESC;
