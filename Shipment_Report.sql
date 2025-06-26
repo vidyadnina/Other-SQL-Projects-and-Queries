@@ -75,6 +75,38 @@ FROM `shipment-report-q1.Data_q1.margins` m
 JOIN `shipment-report-q1.Data_q1.shipsched` s
 ON m.Project_No = s.Project_No
 WHERE m.BL_Month IN ('January','February','March') AND m.Exclude_VAS = TRUE AND m.Done_Calculate_1 = TRUE
+
+-- Analysis
+
+SELECT Source, ROUND(SUM(Margin),2) AS Total_Margin
+FROM Data_q1.MMN_LMK
+GROUP BY Source
+ORDER BY Total_Margin desc;
+
+SELECT month,Source, Acuan_Coa_Vendor, ROUND(AVG(Margin),2) AS Avg_Margin, COUNT(Source) AS N_of_shipments, ROUND(SUM(Margin*QTY_LP),2) AS Total_Margin
+FROM Data_q1.MMN_LMK
+GROUP BY month,Source, Acuan_Coa_Vendor
+ORDER BY month,Avg_Margin Asc;
+
+SELECT month,Source, Acuan_Coa_Vendor, ROUND(Ni_diff,2)
+FROM Data_q1.MMN_LMK
+WHERE Acuan_Coa_Vendor = "Muat"
+GROUP BY month,Source,Acuan_Coa_Vendor, Ni_diff
+ORDER BY month,Ni_diff Asc
+;
+
+SELECT month, Source, Acuan_Coa_Vendor, ROUND(Ni_diff, 2) AS Ni_diff
+FROM (
+  SELECT month, Source, Acuan_Coa_Vendor, Ni_diff,
+         ROW_NUMBER() OVER (PARTITION BY month ORDER BY Ni_diff ASC) AS rn
+  FROM Data_q1.MMN_LMK
+  WHERE Acuan_Coa_Vendor = "Muat"
+) sub
+WHERE rn <= 10
+ORDER BY month, Ni_diff ASC;
+
+
+
 ORDER BY m.Project_No
 );
 
