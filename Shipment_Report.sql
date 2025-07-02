@@ -11,7 +11,8 @@ AS
     m.BL_Date,
     m.Source, 
     m.Enduser, 
-    m.Owner, 
+    m.Type,
+    m.Owner as Vendor, 
     m.Selling_Term, 
     m.HMA,
     s._TA_LP AS TA_LP,
@@ -27,7 +28,7 @@ AS
     m.SiO2_LP, 
     m.MgO_LP, 
     m.Fe_LP, 
-    
+    s.Surveyor_DP,
     m.Ni_DP, 
     m.MC_DP, 
     m.SiO2_DP,
@@ -35,6 +36,14 @@ AS
     m.Fe_DP,
     m.Qty_load_port AS QTY_LP, 
     m.Qty_Disch_Port AS QTY_DP, 
+    CASE
+        WHEN m.Acuan_Coa_Vendor = "Muat" THEN m.Qty_load_port
+        WHEN m.Acuan_Coa_Vendor = "Bongkar" THEN m.Qty_disch_port
+    END AS Qty_vendor,
+    CASE
+        WHEN m.Acuan_Coa_Enduser = "Muat" THEN m.Qty_load_port
+        WHEN m.Acuan_Coa_Enduser = "Bongkar" THEN m.Qty_disch_port
+    END AS Qty_enduser,
     m.Feet_Tongkang, 
     m.Freight_Vendor AS Freight, 
     m.Harga_Kontrak_Vendor, 
@@ -70,43 +79,11 @@ AS
     m.Nickel_Margin_USD AS Margin,
     m.Ni_DP - m.Ni_LP as Ni_diff,
     m.MC_DP - m.MC_LP as MC_diff,
-    HPM_Enduser - HPM_Vendor AS HPM_diff
+    m.HPM_Enduser_FINAL - m.HPM_Vendor_FINAL AS HPM_diff
 FROM `shipment-report-q1.Data_q1.margins` m
-JOIN `shipment-report-q1.Data_q1.shipsched` s
+JOIN `shipment-report-q1.Data_q1.shipschedule` s
 ON m.Project_No = s.Project_No
 WHERE m.BL_Month IN ('January','February','March') AND m.Exclude_VAS = TRUE AND m.Done_Calculate_1 = TRUE
-
--- Analysis
-
-SELECT Source, ROUND(SUM(Margin),2) AS Total_Margin
-FROM Data_q1.MMN_LMK
-GROUP BY Source
-ORDER BY Total_Margin desc;
-
-SELECT month,Source, Acuan_Coa_Vendor, ROUND(AVG(Margin),2) AS Avg_Margin, COUNT(Source) AS N_of_shipments, ROUND(SUM(Margin*QTY_LP),2) AS Total_Margin
-FROM Data_q1.MMN_LMK
-GROUP BY month,Source, Acuan_Coa_Vendor
-ORDER BY month,Avg_Margin Asc;
-
-SELECT month,Source, Acuan_Coa_Vendor, ROUND(Ni_diff,2)
-FROM Data_q1.MMN_LMK
-WHERE Acuan_Coa_Vendor = "Muat"
-GROUP BY month,Source,Acuan_Coa_Vendor, Ni_diff
-ORDER BY month,Ni_diff Asc
-;
-
-SELECT month, Source, Acuan_Coa_Vendor, ROUND(Ni_diff, 2) AS Ni_diff
-FROM (
-  SELECT month, Source, Acuan_Coa_Vendor, Ni_diff,
-         ROW_NUMBER() OVER (PARTITION BY month ORDER BY Ni_diff ASC) AS rn
-  FROM Data_q1.MMN_LMK
-  WHERE Acuan_Coa_Vendor = "Muat"
-) sub
-WHERE rn <= 10
-ORDER BY month, Ni_diff ASC;
-
-
-
 ORDER BY m.Project_No
 );
 
